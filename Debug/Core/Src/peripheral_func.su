@@ -1,0 +1,6 @@
+peripheral_func.c:9:1:__io_putchar	16	static
+peripheral_func.c:28:6:peripheral_init	8	static
+peripheral_func.c:61:6:gpio_set	8	static
+peripheral_func.c:70:6:led_pattern	16	static
+peripheral_func.c:120:6:getEncoder	16	static
+peripheral_func.c:135:6:ADval_get	4	static
