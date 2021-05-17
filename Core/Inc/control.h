@@ -5,5 +5,6 @@
 
 void setup(void);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*);
+void ErrorCheck(uint16_t);
 
 #endif

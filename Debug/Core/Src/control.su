@@ -1,2 +1,2 @@
-control.c:3:6:setup	4	static
-control.c:7:6:HAL_TIM_PeriodElapsedCallback	16	static
+control.c:3:6:setup	24	static
+control.c:186:6:HAL_TIM_PeriodElapsedCallback	16	static

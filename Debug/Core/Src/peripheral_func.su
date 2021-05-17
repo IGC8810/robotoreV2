@@ -1,6 +1,9 @@
 peripheral_func.c:9:1:__io_putchar	16	static
-peripheral_func.c:28:6:peripheral_init	8	static
-peripheral_func.c:61:6:gpio_set	8	static
-peripheral_func.c:70:6:led_pattern	16	static
-peripheral_func.c:120:6:getEncoder	16	static
-peripheral_func.c:135:6:ADval_get	4	static
+peripheral_func.c:36:6:peripheral_init	8	static
+peripheral_func.c:80:6:gpio_set	8	static
+peripheral_func.c:89:6:led_pattern	16	static
+peripheral_func.c:98:6:getEncoder	12	static
+peripheral_func.c:114:6:ADval_get	4	static
+peripheral_func.c:129:6:MotorCtrl	24	static
+peripheral_func.c:164:6:buzzer	16	static
+peripheral_func.c:168:6:HAL_GPIO_EXTI_Callback	16	static
