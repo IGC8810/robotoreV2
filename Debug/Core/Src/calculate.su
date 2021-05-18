@@ -1,2 +1,4 @@
-calculate.c:8:7:mileage	16	static
-calculate.c:12:7:ComplementaryFilter	32	static
+calculate.c:3:7:mileage	16	static
+calculate.c:7:7:ComplementaryFilter	32	static
+calculate.c:15:6:posPID	64	static
+calculate.c:42:6:velPID	48	static

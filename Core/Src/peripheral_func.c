@@ -32,6 +32,7 @@ int64_t enc_tim_total = 0;
 int8_t setup_mode = 0;
 int8_t check_sens_val = 0;
 uint8_t sw_center_state = 0;
+uint8_t cnt_sw = 0;
 
 void peripheral_init(void){
 	gpio_set();
@@ -87,12 +88,12 @@ void gpio_set(void){
 }
 
 void led_pattern(uint8_t led){
-	if(led & 0b001) LED_R_RESET;
-		else LED_R_SET;
+	if(led & 0b001) LED_B_RESET;
+		else LED_B_SET;
 	if(led & 0b010) LED_G_RESET;
 		else LED_G_SET;
-	if(led & 0b100) LED_B_RESET;
-		else LED_B_SET;
+	if(led & 0b100) LED_R_RESET;
+		else LED_R_SET;
 }
 
 void getEncoder(void) {
@@ -109,8 +110,8 @@ void getEncoder(void) {
 
 }
 
-//sensor-borad from left to right		AD9 AD8 AD15 AD14 AD7 AD6   AD5 AD4 AD3 AD2 AD1 AD0
-//maker-borad  from left to right	 	ADxx 	ADxx
+//sensor-borad	Light	AD9 AD8 AD15 AD14 AD7 AD6   AD5 AD4 AD3 AD2 AD1 AD0   Right
+//maker-borad  	 		ADxx 	ADxx
 void ADval_get(void) {
 	line_sen0  = ADC1_Buff[0];
 	line_sen1  = ADC1_Buff[1];
@@ -120,10 +121,10 @@ void ADval_get(void) {
 	line_sen5  = ADC1_Buff[5];
 	line_sen6  = ADC1_Buff[6];
 	line_sen7  = ADC1_Buff[7];
-	line_sen8  = ADC1_Buff[8];
-	line_sen9  = ADC1_Buff[9];
-	line_sen10 = ADC1_Buff[10];
-	line_sen11 = ADC1_Buff[11];
+	line_sen10 = ADC1_Buff[8];
+	line_sen11 = ADC1_Buff[9];
+	line_sen8  = ADC1_Buff[10];
+	line_sen9  = ADC1_Buff[11];
 }
 
 void MotorCtrl(int16_t motorR, int16_t motorL, uint8_t stop) {
@@ -167,30 +168,31 @@ void buzzer(uint8_t bz){
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
-	if (GPIO_Pin == GPIO_PIN_0) ; 	//left
+	if(cnt_sw >= 3) {
+		if (GPIO_Pin == GPIO_PIN_0) ; 	//left
 
-	if (GPIO_Pin == GPIO_PIN_1) { 	//up
-	  check_sens_val--;
-	  if(check_sens_val < 0)  check_sens_val = CHECK_SENS_MAX;
+		if (GPIO_Pin == GPIO_PIN_1) { 	//up
+		  check_sens_val--;
+		  if(check_sens_val < 0)  check_sens_val = CHECK_SENS_MAX;
+		}
+
+		if (GPIO_Pin == GPIO_PIN_12) {	//push
+		  setup_mode++;
+		  if(setup_mode >= 8) setup_mode = 0;
+		}
+
+		if (GPIO_Pin == GPIO_PIN_13) {	//down
+		  check_sens_val++;
+		  if(check_sens_val > CHECK_SENS_MAX) check_sens_val = 0;
+		}
+
+		if (GPIO_Pin == GPIO_PIN_14) {	//center
+		  if(sw_center_state > 1) sw_center_state = 1;
+		  sw_center_state ^= 1;
+		}
+
+		if (GPIO_Pin == GPIO_PIN_15) ;	//right
+
+		cnt_sw = 0;
 	}
-
-	if (GPIO_Pin == GPIO_PIN_12) {	//push
-	  setup_mode++;
-	  if(setup_mode >= 8) setup_mode = 0;
-	}
-
-	if (GPIO_Pin == GPIO_PIN_13) {	//down
-	  check_sens_val++;
-	  if(check_sens_val > CHECK_SENS_MAX) check_sens_val = 0;
-	}
-
-	if (GPIO_Pin == GPIO_PIN_14) {	//center
-	  if(sw_center_state > 1) sw_center_state = 1;
-	  sw_center_state ^= 1;
-	}
-
-	if (GPIO_Pin == GPIO_PIN_15) ;	//right
-
-	//HAL_Delay(10);
-
 }

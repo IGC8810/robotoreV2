@@ -9,7 +9,7 @@ void setup(void){
 		case 0:	//sensor check
 
 		if( sw_center_state == 1 ) {	//buzzer
-			__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 2099);
+			__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1049); //MAX4199
 		}
 		else __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);
 
@@ -43,7 +43,7 @@ void setup(void){
 				lcd_printf("%4d AD8",line_sen8);
 				lcd_locate(0,1);
 				lcd_printf("%4d AD9",line_sen9);
-			break;
+				break;
 			case 5:
 				lcd_locate(0,0);
 				lcd_printf("%4dAD10",line_sen10);
@@ -72,13 +72,13 @@ void setup(void){
 				lcd_locate(0,0);
 				lcd_print("Encoder1");
 				lcd_locate(0,1);
-				lcd_printf("%d", (int)mileage((float)enc_tim1_total));
+				lcd_printf("%8d", (int)mileage((float)enc_tim1_total));
 				break;
 			case 10:
 				lcd_locate(0,0);
 				lcd_print("Encoder2");
 				lcd_locate(0,1);
-				lcd_printf("%d", (int)mileage((float)enc_tim8_total));
+				lcd_printf("%8d", (int)mileage((float)enc_tim8_total));
 				break;
 			case 11:
 				lcd_locate(0,0);
@@ -164,19 +164,19 @@ void setup(void){
 			lcd_locate(0,0);
 			lcd_print("_case-5_");
 			lcd_locate(0,1);
-			lcd_print("        ");
+			lcd_print("________");
 			break;
 		case 6:
 			lcd_locate(0,0);
 			lcd_print("_case-6_");
 			lcd_locate(0,1);
-			lcd_print("        ");
+			lcd_print("________");
 			break;
 		case 7:
 			lcd_locate(0,0);
 			lcd_print("_case-7_");
 			lcd_locate(0,1);
-			lcd_print("        ");
+			lcd_print("________");
 			break;
 		default:
 			break;
@@ -185,15 +185,22 @@ void setup(void){
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	if(htim->Instance == htim6.Instance){
+	if(htim->Instance == htim6.Instance){	//1ms
 		getEncoder();
 		read_gyro_data();
 		read_accel_data();
 		ADval_get();
+
+		//velR = (float)enc_tim8_ms * ENC_PULSE_MM * 1000.0f;
+		//velL = (float)enc_tim1_ms * ENC_PULSE_MM * 1000.0f;
+		//vel_center = (velR + velL) / 2.0f;
+		//velPID(float target, float vel, float* order_velR, float* order_velL)
+
 	}
 
-	if(htim->Instance == htim7.Instance){
-
+	if(htim->Instance == htim7.Instance){	//10ms
+		cnt_sw++;
+		if(cnt_sw >= 250) cnt_sw = 5;
 	}
 }
 
@@ -206,6 +213,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			target_vel = 0.0f;
 			__HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_1, 0);
 			__HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 0);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 0);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 0);
 		}
 		if(error_cnt > 60000) error_cnt = 1000;
 	}

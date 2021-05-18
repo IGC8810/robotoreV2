@@ -39,6 +39,7 @@ extern int64_t enc_tim8_total;
 extern int8_t setup_mode;
 extern int8_t check_sens_val;
 extern uint8_t sw_center_state;
+extern uint8_t cnt_sw;
 
 #define ADC_DATA_BUFFR_SIZE		((uint16_t)12)
 
