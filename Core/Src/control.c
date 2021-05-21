@@ -1,5 +1,49 @@
 #include "control.h"
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+
+	float line_senLLL, line_senLL, line_senL, line_senR, line_senRR, line_senRRR, line_def;
+	float velR, velL, vel_center;
+	float* duty_posR, duty_posL;
+	float* duty_velR, duty_velL;
+
+	if(htim->Instance == htim6.Instance){	//1ms
+		getEncoder();
+		read_gyro_data();
+		read_accel_data();
+		ADval_get();
+
+		line_senLLL	= line_sen11 + line_sen10;
+		line_senLL	= line_sen9 + line_sen8;
+		line_senL	= line_sen7 + line_sen6;
+		line_senR	= line_sen5 + line_sen4;
+		line_senRR	= line_sen3 + line_sen2;
+		line_senRRR	= line_sen1 + line_sen0;
+
+		line_def = ( (line_senLLL * 1.6f) + (line_senLL * 1.25f) + line_senL) - (line_senR + (line_senRR * 1.25f) + (line_senRRR * 1.6f));
+
+		posPID(line_def , *duty_posR, *duty_posL);
+		velR = (float)enc_tim8_ms * ENC_PULSE_MM * 1000.0f;
+		velL = (float)enc_tim1_ms * ENC_PULSE_MM * 1000.0f;
+		vel_center = (velR + velL) / 2.0f;
+		//velPID(float target, vel_center, *duty_velR, *duty_velL);
+
+		//MotorCtrl((int16_t)(duty_posR + duty_velR), (int16_t)(duty_posL + duty_velL), stop_flag);
+
+		//ErrorCheck(ERRORCHECK);
+		//timer++;
+		//CrossCheck(CROSSCHECK);
+		//maker_check = MakerSenTh(MAKERTHRESHOLD);//400 700
+		//MakerCheck(maker_check);
+
+	}
+
+	if(htim->Instance == htim7.Instance){	//10ms
+		cnt_sw++;
+		if(cnt_sw >= 250) cnt_sw = 5;
+	}
+}
+
 void setup(void){
 	unsigned short volt_reg;
 
@@ -180,27 +224,6 @@ void setup(void){
 			break;
 		default:
 			break;
-	}
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-
-	if(htim->Instance == htim6.Instance){	//1ms
-		getEncoder();
-		read_gyro_data();
-		read_accel_data();
-		ADval_get();
-
-		//velR = (float)enc_tim8_ms * ENC_PULSE_MM * 1000.0f;
-		//velL = (float)enc_tim1_ms * ENC_PULSE_MM * 1000.0f;
-		//vel_center = (velR + velL) / 2.0f;
-		//velPID(float target, float vel, float* order_velR, float* order_velL)
-
-	}
-
-	if(htim->Instance == htim7.Instance){	//10ms
-		cnt_sw++;
-		if(cnt_sw >= 250) cnt_sw = 5;
 	}
 }
 

@@ -7,7 +7,7 @@
 
 float mileage(float);
 float ComplementaryFilter(float, float, float, float);
-void posPID(float*, float*);
+void posPID(float, float*, float*);
 void velPID(float, float, float*, float*);
 
 #endif

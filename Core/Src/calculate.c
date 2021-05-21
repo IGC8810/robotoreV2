@@ -12,22 +12,14 @@ float ComplementaryFilter(float high_cut, float low_cut, float alpha, float comp
 	return complement;
 }
 
-void posPID(float* order_posR, float* order_posL) {
+void posPID(float difference, float* order_posR, float* order_posL) {
 
 	float p_pos, d_pos;
 	static float i_pos;
 	float kp_pos = 0.10f, ki_pos = 0.004f, kd_pos = 0.008f;
 	static float def_pos[] = {0.0f, 0.0f};
-	float line_senLLL, line_senLL, line_senL, line_senR, line_senRR, line_senRRR;
 
-	line_senLLL	= line_sen11 + line_sen10;
-	line_senLL	= line_sen9 + line_sen8;
-	line_senL	= line_sen7 + line_sen6;
-	line_senR	= line_sen5 + line_sen4;
-	line_senRR	= line_sen3 + line_sen2;
-	line_senRRR	= line_sen1 + line_sen0;
-
-	def_pos[0] = ( (line_senLLL * 1.6f) + (line_senLL * 1.25f) + line_senL) - (line_senR + (line_senRR * 1.25f) + (line_senRRR * 1.6f));
+	def_pos[0] = difference;
 
 	p_pos = kp_pos * def_pos[0];
 	i_pos += ki_pos * def_pos[0] * DELTA_T;
@@ -39,7 +31,7 @@ void posPID(float* order_posR, float* order_posL) {
 	def_pos[1] = def_pos[0];
 }
 
-void velPID(float target, float vel, float* order_velR, float* order_velL) {
+void velPID(float target_vel, float , float* order_velR, float* order_velL) {
 	float p_vel, kp_vel = 2.8f, ki_vel = 50.0f;
 	float filter_vel_center, acceleration_imu;
 	static float i_vel, def_vel, last_vel_center;
@@ -51,7 +43,7 @@ void velPID(float target, float vel, float* order_velR, float* order_velL) {
 	filter_vel_center = ComplementaryFilter(acceleration_imu, vel, 0.65f, last_vel_center);
 	last_vel_center = filter_vel_center;
 
-	def_vel = filter_vel_center - target;
+	def_vel = filter_vel_center - target_vel;
 
 	p_vel = kp_vel * def_vel;
 	i_vel += ki_vel * def_vel * DELTA_T;

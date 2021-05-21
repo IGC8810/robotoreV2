@@ -138,9 +138,22 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t main_pattern = 0;
   while (1)
   {
-	  setup();
+	  switch(main_pattern){
+		  case 0:
+			  setup();
+			  break;
+		  case 10:
+			  break;
+		  case 20:
+			  break;
+		  case 30:
+			  break;
+		  default:
+			  break;
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
