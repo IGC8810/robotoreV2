@@ -1,4 +1,6 @@
-calculate.c:3:7:mileage	16	static
-calculate.c:7:7:ComplementaryFilter	32	static
-calculate.c:15:6:posPID	64	static
-calculate.c:42:6:velPID	48	static
+calculate.c:8:7:mileage	16	static
+calculate.c:12:7:ComplementaryFilter	32	static
+calculate.c:20:6:posPID	32	static
+calculate.c:40:6:velPID	40	static
+calculate.c:59:6:Calculation_offset_zg	16	static
+calculate.c:63:7:Velo_Spline_Curve	32	static

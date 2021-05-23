@@ -35,7 +35,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/peripheral_func.h ../Core/Inc/main.h ../Core/Inc/AQM0802.h \
  ../Core/Inc/ICM20648.h ../Core/Inc/INA260.h ../Core/Inc/Flash_F405.h \
  ../Core/Inc/calculate.h ../Core/Inc/peripheral_func.h \
- ../Core/Inc/control.h
+ ../Core/Inc/control.h ..//CMSIS/DSP/Include/arm_math.h \
+ ../Drivers/CMSIS/Include/cmsis_compiler.h
 
 ../Core/Inc/main.h:
 
@@ -122,3 +123,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/peripheral_func.h:
 
 ../Core/Inc/control.h:
+
+..//CMSIS/DSP/Include/arm_math.h:
+
+../Drivers/CMSIS/Include/cmsis_compiler.h:

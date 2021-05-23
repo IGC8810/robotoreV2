@@ -1,2 +1,6 @@
-control.c:3:6:setup	24	static
-control.c:186:6:HAL_TIM_PeriodElapsedCallback	16	static
+control.c:10:6:HAL_TIM_PeriodElapsedCallback	32	static
+control.c:123:6:setup	24	static
+control.c:361:6:ErrorCheck	16	static
+control.c:379:6:CrossCheck	24	static
+control.c:391:9:StartGoalCheck	32	static
+control.c:412:6:MakerCheck	40	static

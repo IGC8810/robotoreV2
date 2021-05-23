@@ -35,7 +35,9 @@ Core/Src/peripheral_func.o: ../Core/Src/peripheral_func.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Core/Inc/AQM0802.h ../Core/Inc/ICM20648.h ../Core/Inc/INA260.h \
  ../Core/Inc/Flash_F405.h ../Core/Inc/calculate.h \
- ../Core/Inc/peripheral_func.h ../Core/Inc/control.h
+ ../Core/Inc/peripheral_func.h ../Core/Inc/control.h \
+ ..//CMSIS/DSP/Include/arm_math.h \
+ ../Drivers/CMSIS/Include/cmsis_compiler.h
 
 ../Core/Inc/peripheral_func.h:
 
@@ -120,3 +122,7 @@ Core/Src/peripheral_func.o: ../Core/Src/peripheral_func.c \
 ../Core/Inc/peripheral_func.h:
 
 ../Core/Inc/control.h:
+
+..//CMSIS/DSP/Include/arm_math.h:
+
+../Drivers/CMSIS/Include/cmsis_compiler.h:

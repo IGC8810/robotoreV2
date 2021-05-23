@@ -133,30 +133,280 @@ int main(void)
   MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   peripheral_init();
-  led_pattern(7);
+  int tim_buf;
+  int16_t log_cmp;
+  float log_buf;
+  float mm_buf;
+  uint32_t end_log_adress;
+  float spline_temp;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t main_pattern = 0;
   while (1)
   {
-	  switch(main_pattern){
-		  case 0:
-			  setup();
-			  break;
-		  case 10:
-			  break;
-		  case 20:
-			  break;
-		  case 30:
-			  break;
-		  default:
-			  break;
-	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	switch(main_pattern) {
+		case 0:	//setup
+			setup();
+			break;
+		case 10:
+			maker_adress = start_adress_sector9;
+
+			timer = 0;
+			target_vel = 0.0f;
+			main_pattern++;
+
+			break;
+		case 11:	//count down
+			if(timer >= 0 && timer < 1000) ;
+			else if(timer >= 1000 && timer < 2000) ;
+			else if(timer >= 2000 && timer < 3000) {
+				calibration_flag = 1;
+				led_pattern(2);
+			}
+			else if(timer >= 3000 && timer < 4000) led_pattern(4);
+			else if(timer >= 4000 && timer < 5000) {
+				led_pattern(1);
+				calibration_flag = 0;
+				Calculation_offset_zg();
+			}
+			else if(timer >= 5000) {
+				if (second_trace_flag == 0){
+					if (velocity_pattern == 1) target_vel = 1000.0f;
+					else if (velocity_pattern == 2) target_vel = 1200.0f;
+					else if (velocity_pattern == 3) target_vel = 1500.0f;
+					else target_vel = 0.0f;
+					led_pattern(0);
+					main_pattern++;
+				}
+				else {
+					if(second_trace_pattern == 1) target_vel = START_VELOCITY;
+					else if(second_trace_pattern == 2) target_vel = START_VELOCITY2;
+					else target_vel = 1000.0f;
+
+					main_pattern++;
+				}
+			}
+
+			break;
+		case 12:	//start
+			if(maker_check >= 8) {	//start_maker_check
+			//if( 1 <= maker_check && maker_check <= 3) {	//start_maker_check
+				enc_tim1_total = 0;
+				enc_tim8_total = 0;
+				enc_tim_total = 0;
+				mm_total = 0;
+				timer = 0;
+				main_pattern = 13;
+				enc_tim1_cnt_10ms = 0;
+				enc_tim8_cnt_10ms = 0;
+				log_adress = start_adress_sector7;
+				led_pattern(6);
+
+				if( second_trace_flag == 0 ) flash_flag = 1;
+				if( second_trace_flag == 1 ) {
+					if(second_trace_pattern == 2)plan_velo_adress = start_adress_sector11;
+					else plan_velo_adress = start_adress_sector10;
+
+					target_vel = *(float*)plan_velo_adress;
+					plan_velo_adress += 0x04;
+					log_adress += 0x04;
+					mm_total = *(float*)log_adress;
+					log_adress += 0x08;
+				}
+			}
+			break;
+		case 13:	//running
+			while( ( mm_total <= mileage((float)enc_tim_total)) && second_trace_flag == 1 ) {
+				if(isnan(*(float*)log_adress) != 0) {
+					led_pattern(7);
+					enc_cnt = 0;
+					main_pattern = 14;
+					break;
+				}
+				else mm_total += *(float*)log_adress;
+
+				if(isnan(*(float*)plan_velo_adress) != 0) {
+					led_pattern(7);
+					enc_cnt = 0;
+					main_pattern = 14;
+					break;
+				}
+				else target_vel = *(float*)plan_velo_adress;
+
+				plan_velo_adress += 0x04;
+				log_adress += 0x08;
+			}
+
+			if(maker_check >= 8 && timer >= 1000) { //goal_maler_check
+			//if( 1 <= maker_check && maker_check <= 3 && second_trace_flag == 0 && timer >= 800) {
+				/*buf++;
+				timer = 0;
+				if(buf == 2){
+					flash_flag = 0;
+					tim_buf = timer;
+					led_pattern(4);
+					enc_cnt = 0;
+					main_pattern = 14;
+				}*/
+				flash_flag = 0;
+				tim_buf = timer;
+				led_pattern(4);
+				enc_cnt = 0;
+				main_pattern++;
+				timer = 0;
+			}
+
+			break;
+		case 14:	//goal
+			led_pattern(7);
+			//target_vel = END_VELOCITY;
+			if(second_trace_pattern == 1) target_vel = END_VELOCITY;
+			else if(second_trace_pattern == 2) target_vel = END_VELOCITY2;
+			else target_vel = 1000.0f;
+
+			if (mileage((float)enc_cnt) >= 400) {
+				target_vel = 0.0f;
+				__HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_1, 0);
+				__HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 0);
+				led_pattern(7);
+				main_pattern = 20;
+			}
+			break;
+		case 20:
+			__HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_1, 0);
+			__HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 0);
+			lcd_locate(0,0);
+			lcd_printf("%8d",tim_buf);
+			lcd_locate(0,1);
+			lcd_printf("%f",mileage((float)(enc_tim1_total + enc_tim8_total) / 2.0f));
+			if( second_trace_flag == 0 ) main_pattern++;
+			end_log_adress = log_adress;
+			break;
+		case 21:
+			__HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_1, 0);
+			__HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 0);
+			led_pattern(1);
+
+			for(log_cmp = 0; log_cmp < log_array ;log_cmp++){
+				PlanVelo2[log_cmp] = PlanVelo[log_cmp];
+			}
+
+			for(log_cmp = 0; log_cmp < log_array ;log_cmp++) {
+				log_buf = PlanVelo[log_cmp];
+				spline_temp = Velo_Spline_Curve(log_buf);
+				if(spline_temp >= MAX_VELOCITY) PlanVelo[log_cmp] = MAX_VELOCITY;
+				else if(spline_temp < MIN_VELOCITY) PlanVelo[log_cmp] = MIN_VELOCITY;
+				else PlanVelo[log_cmp] = spline_temp;
+			}
+
+			for(log_cmp = 0; log_cmp < log_array ;log_cmp++) {
+				log_buf = PlanVelo2[log_cmp];
+				spline_temp = Velo_Spline_Curve(log_buf);
+				if(spline_temp >= MAX_VELOCITY2) PlanVelo2[log_cmp] = MAX_VELOCITY2;
+				else if(spline_temp < MIN_VELOCITY2) PlanVelo2[log_cmp] = MIN_VELOCITY2;
+				else PlanVelo2[log_cmp] = spline_temp;
+			}
+
+			log_adress = start_adress_sector7;
+			log_adress += 0x04;
+
+			for(log_cmp = 0; log_cmp < log_array ;log_cmp++) {
+				mm_buf = *(float*)log_adress;
+				if(log_cmp == 0) {
+					if( PlanVelo[log_cmp] > sqrtf( 2.0f * ACCELERATION * mm_buf ) + START_VELOCITY ) PlanVelo[log_cmp] = sqrtf( 2.0f * ACCELERATION * mm_buf ) + START_VELOCITY;
+				}
+				else {
+					if( PlanVelo[log_cmp] > sqrtf( 2.0f * ACCELERATION * mm_buf ) + PlanVelo[log_cmp - 1] ) PlanVelo[log_cmp] = sqrtf( 2.0f * ACCELERATION * mm_buf ) + PlanVelo[log_cmp - 1];
+				}
+
+				log_adress += 0x08;
+
+			}
+
+			log_adress = start_adress_sector7;
+			log_adress += 0x04;
+
+			for(log_cmp = 0; log_cmp < log_array ;log_cmp++) {
+				mm_buf = *(float*)log_adress;
+				if(log_cmp == 0) {
+					if( PlanVelo2[log_cmp] > sqrtf( 2.0f * ACCELERATION2 * mm_buf ) + START_VELOCITY2 ) PlanVelo2[log_cmp] = sqrtf( 2.0f * ACCELERATION2 * mm_buf ) + START_VELOCITY2;
+				}
+				else {
+					if( PlanVelo2[log_cmp] > sqrtf( 2.0f * ACCELERATION2 * mm_buf ) + PlanVelo2[log_cmp - 1] ) PlanVelo2[log_cmp] = sqrtf( 2.0f * ACCELERATION2 * mm_buf ) + PlanVelo2[log_cmp - 1];
+				}
+
+				log_adress += 0x08;
+
+			}
+
+			log_adress = end_log_adress;
+			log_adress -= 0x04;
+
+			for(log_cmp = log_array - 1; log_cmp >= 0 ;log_cmp--) {
+
+				if(log_cmp != log_array - 1) mm_buf = *(float*)log_adress;
+
+				if(log_cmp == log_array - 1) {
+					if( END_VELOCITY < PlanVelo[log_cmp] - sqrtf( 2.0f * DECELERATION * END_DISTANCE ) ) PlanVelo[log_cmp] = END_VELOCITY + sqrtf( 2.0f * DECELERATION * END_DISTANCE ) ;
+				}
+				else{
+					if( PlanVelo[log_cmp + 1] < PlanVelo[log_cmp] - sqrtf( 2.0f * DECELERATION * mm_buf ) ) PlanVelo[log_cmp] = PlanVelo[log_cmp + 1] + sqrtf( 2.0f * DECELERATION * mm_buf );
+				}
+
+				log_adress -= 0x08;
+			}
+
+			log_adress = end_log_adress;
+			log_adress -= 0x04;
+
+			for(log_cmp = log_array - 1; log_cmp >= 0 ;log_cmp--) {
+
+				if(log_cmp != log_array - 1) mm_buf = *(float*)log_adress;
+
+				if(log_cmp == log_array - 1) {
+					if( END_VELOCITY2 < PlanVelo2[log_cmp] - sqrtf( 2.0f * DECELERATION2 * END_DISTANCE2 ) ) PlanVelo2[log_cmp] = END_VELOCITY2 + sqrtf( 2.0f * DECELERATION2 * END_DISTANCE2 ) ;
+				}
+				else{
+					if( PlanVelo2[log_cmp + 1] < PlanVelo2[log_cmp] - sqrtf( 2.0f * DECELERATION2 * mm_buf ) ) PlanVelo2[log_cmp] = PlanVelo2[log_cmp + 1] + sqrtf( 2.0f * DECELERATION2 * mm_buf );
+				}
+
+				log_adress -= 0x08;
+			}
+
+			for(log_cmp = 0; log_cmp < log_array; log_cmp++) {
+				FLASH_Write_Word_F(plan_velo_adress, PlanVelo[log_cmp]);
+				plan_velo_adress += 0x04;
+			}
+
+			plan_velo_adress = start_adress_sector11;
+
+			for(log_cmp = 0; log_cmp < log_array; log_cmp++) {
+				FLASH_Write_Word_F(plan_velo_adress, PlanVelo2[log_cmp]);
+				plan_velo_adress += 0x04;
+			}
+
+			main_pattern++;
+			led_pattern(3);
+			break;
+		case 22:
+			lcd_locate(0,0);
+			lcd_print("_Finish_");
+			lcd_locate(0,1);
+			lcd_printf("%f",mileage((float)(enc_tim1_total + enc_tim8_total) / 2.0f));
+			if(sw_up_state == 1) {
+				main_pattern = 0;
+				second_trace_flag = 1;
+				setup_mode = 0;
+				sw_up_state = 0;
+			}
+			break;
+		default:
+			break;
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -231,7 +481,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 12;
+  hadc1.Init.NbrOfConversion = 14;
   hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -331,6 +581,22 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_15;
   sConfig.Rank = 12;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
+  */
+  sConfig.Channel = ADC_CHANNEL_12;
+  sConfig.Rank = 13;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
+  */
+  sConfig.Channel = ADC_CHANNEL_13;
+  sConfig.Rank = 14;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
